@@ -10,6 +10,8 @@ export interface StatsData {
   repos: number;
   score?: number;
   rank: string;
+  /** Embedded data-URI avatar (or null when unavailable). Never an external URL. */
+  avatar?: string | null;
 }
 
 export interface LangStat {

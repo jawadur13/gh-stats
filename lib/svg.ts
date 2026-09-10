@@ -40,6 +40,15 @@ function borderOf(opts: CardOptions): string {
   return opts.hideBorder ? "transparent" : t.border;
 }
 
+function initialsOf(name: string, login: string): string {
+  const words = name.trim().split(/\s+/).filter((w) => w.length > 0);
+  let s = "";
+  if (words.length >= 2) s = (words[0][0] ?? "") + (words[1][0] ?? "");
+  else if (words.length === 1) s = words[0].slice(0, 2);
+  if (!s) s = login.slice(0, 2);
+  return escapeXml(s.toUpperCase());
+}
+
 /** Minimal geometric glyphs on a 14x14 box. */
 function icon(name: StatKey, color: string): string {
   const sw = `stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
@@ -93,7 +102,9 @@ export function renderStatsCard(data: StatsData, opts: CardOptions = {}): string
     .join("");
   const height = gridTop + rows * rowH + 18;
   const avId = `ghav-${data.login.replace(/[^a-zA-Z0-9-]/g, "")}`;
-  const avatar = `<defs><clipPath id="${avId}"><circle cx="37" cy="40" r="19"/></clipPath></defs><circle cx="37" cy="40" r="19" fill="${t.bar}"/><image href="https://github.com/${escapeXml(data.login)}.png" x="18" y="21" width="38" height="38" clip-path="url(#${avId})"/>`;
+  const avatar = data.avatar
+    ? `<defs><clipPath id="${avId}"><circle cx="37" cy="40" r="19"/></clipPath></defs><circle cx="37" cy="40" r="19" fill="${t.bar}"/><image href="${data.avatar}" x="18" y="21" width="38" height="38" clip-path="url(#${avId})"/>`
+    : `<circle cx="37" cy="40" r="19" fill="${t.bar}"/><text x="37" y="45" text-anchor="middle" font-family="${FF}" font-size="14" font-weight="800" fill="${t.accent}">${initialsOf(data.displayName, data.login)}</text>`;
 
   return `<svg width="450" height="${height}" viewBox="0 0 450 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(data.displayName)} GitHub stats"><rect x="0.5" y="0.5" rx="10" width="449" height="${height - 1}" fill="${t.bg}" stroke="${stroke}"/>${avatar}<g transform="translate(68, 34)"><text font-family="${FF}" font-size="18" font-weight="700" fill="${t.title}">${escapeXml(data.displayName)}</text></g><g transform="translate(68, 54)"><text font-family="${FF}" font-size="12" fill="${t.text}">@${escapeXml(data.login)} · score ${rp.score}</text></g><g transform="translate(398, 42)"><circle cx="0" cy="0" r="${ringR}" fill="none" stroke="${t.accent}" stroke-opacity="0.25" stroke-width="6"/><circle cx="0" cy="0" r="${ringR}" fill="none" stroke="${t.accent}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${ringDash}" stroke-dashoffset="${ringOff}" transform="rotate(-90)"><title>${escapeXml(pctLabel)}</title></circle><text x="0" y="6" text-anchor="middle" font-family="${FF}" font-size="17" font-weight="800" fill="${t.title}">${escapeXml(data.rank)}</text></g><g transform="translate(398, 82)"><text text-anchor="middle" font-family="${FF}" font-size="10" fill="${t.text}">${escapeXml(pctLabel)}</text></g>${cells}</svg>`;
 }

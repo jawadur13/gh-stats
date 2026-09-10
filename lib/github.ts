@@ -233,7 +233,7 @@ export async function fetchStats(
   }
   const includePrivate = opts.includePrivate === true;
   const { from, to } = getYearWindow(opts.now);
-  const [data, stars] = await Promise.all([
+  const [data, stars, avatar] = await Promise.all([
     ghGraphQL<StatsQuery>(opts.token, STATS_QUERY, {
       login: clean,
       from,
@@ -241,6 +241,7 @@ export async function fetchStats(
       privacy: includePrivate ? null : "PUBLIC",
     }),
     fetchTotalStars(clean, opts.token, includePrivate),
+    fetchAvatar(clean, opts.token),
   ]);
   if (!data.user) throw new Error(`user "${clean}" not found`);
   const cc = data.user.contributionsCollection;
@@ -262,6 +263,7 @@ export async function fetchStats(
     ...base,
     score,
     rank: computeRank(base),
+    avatar,
   };
 }
 
@@ -300,6 +302,42 @@ const FALLBACK_COLORS: Record<string, string> = {
   Astro: "#ff5a03",
   PHP: "#4F5D95",
 };
+
+/**
+ * Fetches the user's avatar server-side and embeds it as a small data URI,
+ * so cards render through proxies (GitHub camo) that block nested external
+ * images. Returns null on any failure — callers show initials instead.
+ */
+export async function fetchAvatar(
+  login: string,
+  token?: string,
+  size = 96
+): Promise<string | null> {
+  try {
+    const profile = await fetch(`https://api.github.com/users/${encodeURIComponent(login)}`, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!profile.ok) return null;
+    const { avatar_url } = (await profile.json()) as { avatar_url?: string };
+    if (!avatar_url) return null;
+    const sep = avatar_url.includes("?") ? "&" : "?";
+    const img = await fetch(`${avatar_url}${sep}s=${size}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!img.ok) return null;
+    const type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
+    if (!/^image\/(png|jpeg|gif|webp)$/.test(type)) return null;
+    const buf = Buffer.from(await img.arrayBuffer());
+    if (buf.byteLength === 0 || buf.byteLength > 150_000) return null;
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 export async function fetchTopLangs(
   login: string,

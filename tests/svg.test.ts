@@ -208,10 +208,34 @@ describe("rank progress ring", () => {
         repos: 52,
         score: 2354,
         rank: "A+",
+        avatar: "data:image/png;base64,iVBORw0KGgo=",
       },
       { theme: "dark" }
     );
     expect(svg).toContain("85% to S");
-    expect(svg).toContain("github.com/jawadur13.png");
+    expect(svg).toContain("data:image/png;base64,iVBORw0KGgo=");
+    expect(svg).not.toContain("github.com/jawadur13.png");
+  });
+
+  test("falls back to initials when avatar is missing", () => {
+    const svg = renderStatsCard(
+      {
+        login: "jawadur13",
+        displayName: "MD JAWADUR RAFID",
+        stars: 18,
+        commits: 1704,
+        prs: 10,
+        issues: 0,
+        contribs: 46,
+        followers: 13,
+        repos: 52,
+        score: 2354,
+        rank: "A+",
+        avatar: null,
+      },
+      { theme: "dark" }
+    );
+    expect(svg).not.toContain("<image");
+    expect(svg).toContain("MJ");
   });
 });
