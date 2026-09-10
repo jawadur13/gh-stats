@@ -118,6 +118,14 @@ describe("renderTopLangsCard", () => {
     expect(svg).toContain('data-donut="2"');
     expect(svg).toContain("TypeScript");
   });
+
+  test("is the same width as the other cards (450)", () => {
+    const svg = renderTopLangsCard(
+      [{ name: "TypeScript", color: "#3178c6", size: 4651 }],
+      { theme: "dark" }
+    );
+    expect(svg.startsWith('<svg width="450"')).toBe(true);
+  });
 });
 
 describe("renderError", () => {

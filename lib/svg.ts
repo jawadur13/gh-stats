@@ -115,12 +115,12 @@ export function renderTopLangsCard(langs: LangStat[], opts: CardOptions & { maxL
   const maxLangs = Math.min(8, Math.max(1, opts.maxLangs ?? 6));
   const top = langs.slice(0, maxLangs);
   if (top.length === 0) {
-    return `<svg width="300" height="120" viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="top languages"><rect x="0.5" y="0.5" rx="10" width="299" height="119" fill="${t.bg}" stroke="${stroke}"/><g transform="translate(25, 35)"><text font-family="${FF}" font-size="17" font-weight="600" fill="${t.title}">Top languages</text></g><g transform="translate(25, 65)"><text font-family="${FF}" font-size="13" fill="${t.text}">No language data</text></g></svg>`;
+    return `<svg width="450" height="120" viewBox="0 0 450 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="top languages"><rect x="0.5" y="0.5" rx="10" width="449" height="119" fill="${t.bg}" stroke="${stroke}"/><g transform="translate(25, 35)"><text font-family="${FF}" font-size="17" font-weight="600" fill="${t.title}">Top languages</text></g><g transform="translate(25, 65)"><text font-family="${FF}" font-size="13" fill="${t.text}">No language data</text></g></svg>`;
   }
   const total = top.reduce((a, l) => a + l.size, 0) || 1;
-  const cx = 150;
-  const cy = 108;
-  const r = 44;
+  const cx = 110;
+  const cy = 132;
+  const r = 48;
   const C = 2 * Math.PI * r;
   let cum = 0;
   const segs = top
@@ -129,21 +129,20 @@ export function renderTopLangsCard(langs: LangStat[], opts: CardOptions & { maxL
       const len = Math.max(2, f * C);
       const rot = (-90 + 360 * cum).toFixed(1);
       cum += f;
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${escapeXml(l.color)}" stroke-width="18" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${escapeXml(l.color)}" stroke-width="20" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" transform="rotate(${rot} ${cx} ${cy})"/>`;
     })
     .join("");
   const topPct = ((top[0].size / total) * 100).toFixed(0);
-  const half = Math.ceil(top.length / 2);
-  const legendY = 176;
-  const col = (list: LangStat[], dx: number) =>
-    list
-      .map((l, i) => {
-        const pct = ((l.size / total) * 100).toFixed(1);
-        return `<g transform="translate(${dx}, ${legendY + i * 22})"><circle cx="5" cy="6" r="5" fill="${escapeXml(l.color)}"/><text x="15" y="10" font-family="${FF}" font-size="11" fill="${t.text}">${escapeXml(l.name)} ${pct}%</text></g>`;
-      })
-      .join("");
-  const height = legendY + half * 22 + 16;
-  return `<svg width="300" height="${height}" viewBox="0 0 300 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="top languages"><rect x="0.5" y="0.5" rx="10" width="299" height="${height - 1}" fill="${t.bg}" stroke="${stroke}"/><g transform="translate(25, 35)"><text font-family="${FF}" font-size="17" font-weight="600" fill="${t.title}">Top languages</text></g><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.bar}" stroke-width="18"/><g data-donut="${top.length}">${segs}</g><text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="${FF}" font-size="22" font-weight="800" fill="${t.title}">${topPct}%</text><text x="${cx}" y="${cy + 14}" text-anchor="middle" font-family="${FF}" font-size="10" fill="${t.text}">${escapeXml(top[0].name)}</text>${col(top.slice(0, half), 28)}${col(top.slice(half), 158)}</svg>`;
+  const legendX = 196;
+  const legendY = 72;
+  const legendRows = top
+    .map((l, i) => {
+      const pct = ((l.size / total) * 100).toFixed(1);
+      return `<g transform="translate(${legendX}, ${legendY + i * 24})"><circle cx="5" cy="6" r="5" fill="${escapeXml(l.color)}"/><text x="15" y="10" font-family="${FF}" font-size="12" fill="${t.text}">${escapeXml(l.name)} ${pct}%</text></g>`;
+    })
+    .join("");
+  const height = Math.max(cy + r + 12, legendY + top.length * 24) + 20;
+  return `<svg width="450" height="${height}" viewBox="0 0 450 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="top languages"><rect x="0.5" y="0.5" rx="10" width="449" height="${height - 1}" fill="${t.bg}" stroke="${stroke}"/><g transform="translate(25, 35)"><text font-family="${FF}" font-size="17" font-weight="600" fill="${t.title}">Top languages</text></g><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.bar}" stroke-width="20"/><g data-donut="${top.length}">${segs}</g><text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="${FF}" font-size="22" font-weight="800" fill="${t.title}">${topPct}%</text><text x="${cx}" y="${cy + 14}" text-anchor="middle" font-family="${FF}" font-size="10" fill="${t.text}">${escapeXml(top[0].name)}</text>${legendRows}</svg>`;
 }
 
 export function renderError(message: string): string {
