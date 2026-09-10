@@ -17,7 +17,7 @@ export function mergePrivateCommits(
   return includePrivate ? publicCommits + restricted : publicCommits;
 }
 
-const KNOWN_STATS: StatKey[] = ["stars", "commits", "prs", "issues", "contribs"];
+const KNOWN_STATS: StatKey[] = ["stars", "commits", "prs", "issues", "contribs", "followers", "repos"];
 
 export function parseHideParam(value: string | undefined): StatKey[] {
   if (!value) return [];
@@ -98,6 +98,7 @@ export interface RankProgress {
   score: number;
   currentMin: number;
   nextMin: number | null;
+  nextRank: string | null;
   /** 0..1 fraction toward the next tier; 1 when on the top tier. */
   progress: number;
 }
@@ -111,7 +112,14 @@ export function rankProgress(score: number): RankProgress {
   const next = TIERS[idx + 1] ?? null;
   const progress =
     next === null ? 1 : Math.min(1, Math.max(0, (score - current.min) / (next.min - current.min)));
-  return { rank: current.rank, score, currentMin: current.min, nextMin: next?.min ?? null, progress };
+  return {
+    rank: current.rank,
+    score,
+    currentMin: current.min,
+    nextMin: next?.min ?? null,
+    nextRank: next?.rank ?? null,
+    progress,
+  };
 }
 
 export async function ghGraphQL<T>(token: string | undefined, query: string, variables: Record<string, unknown>): Promise<T> {
@@ -139,6 +147,8 @@ interface StatsQuery {
   user: {
     name: string | null;
     login: string;
+    followers: { totalCount: number };
+    ownedRepos: { totalCount: number };
     pullRequests: { totalCount: number };
     issues: { totalCount: number };
     contributionsCollection: {
@@ -152,10 +162,12 @@ interface StatsQuery {
 }
 
 const STATS_QUERY = `
-query Stats($login: String!, $from: DateTime, $to: DateTime) {
+query Stats($login: String!, $from: DateTime, $to: DateTime, $privacy: RepositoryPrivacy) {
   user(login: $login) {
     name
     login
+    followers(first: 1) { totalCount }
+    ownedRepos: repositories(first: 1, ownerAffiliations: OWNER, privacy: $privacy) { totalCount }
     pullRequests(first: 1) { totalCount }
     issues(first: 1) { totalCount }
     contributionsCollection(from: $from, to: $to) {
@@ -222,7 +234,12 @@ export async function fetchStats(
   const includePrivate = opts.includePrivate === true;
   const { from, to } = getYearWindow(opts.now);
   const [data, stars] = await Promise.all([
-    ghGraphQL<StatsQuery>(opts.token, STATS_QUERY, { login: clean, from, to }),
+    ghGraphQL<StatsQuery>(opts.token, STATS_QUERY, {
+      login: clean,
+      from,
+      to,
+      privacy: includePrivate ? null : "PUBLIC",
+    }),
     fetchTotalStars(clean, opts.token, includePrivate),
   ]);
   if (!data.user) throw new Error(`user "${clean}" not found`);
@@ -235,7 +252,9 @@ export async function fetchStats(
   const prs = cc.totalPullRequestContributions;
   const issues = cc.totalIssueContributions;
   const contribs = cc.totalRepositoriesWithContributedCommits;
-  const base = { stars, commits, prs, issues, contribs };
+  const followers = data.user.followers.totalCount;
+  const repos = data.user.ownedRepos.totalCount;
+  const base = { stars, commits, prs, issues, contribs, followers, repos };
   const score = scoreOf(base);
   return {
     login: data.user.login,

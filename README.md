@@ -14,7 +14,7 @@ Live at **https://gh-stats-jawadur-rafid.vercel.app**.
 Params `api` (stats card):
 - `username` (or `user`) — required
 - `theme=dark|light` (default dark)
-- `hide=stars,commits,prs,issues,contribs`
+- `hide=stars,commits,prs,issues,contribs,followers,repos`
 - `hide_border=true` — borderless card
 - `count_private=true` — counts MY private commits (needs `PAT_1` on server).
   Others using this link get public-only stats (GitHub privacy — unavoidable).

@@ -54,4 +54,22 @@ describe("renderStreakCard", () => {
     expect(svg).toContain("day streak");
     expect(svg).toContain(">12<");
   });
+
+  test("draws a heatmap strip from calendar days", () => {
+    const days = seq("2026-08-01", Array.from({ length: 28 }, (_, i) => i % 3));
+    const svg = renderStreakCard(
+      { login: "jawadur13", displayName: "MD JAWADUR RAFID", current: 2, longest: 2, total: 28, days },
+      { theme: "dark" }
+    );
+    expect(svg).toContain('data-heat="28"');
+  });
+
+  test("works without days (heatmap hidden, no crash)", () => {
+    const svg = renderStreakCard(
+      { login: "jawadur13", displayName: "MD JAWADUR RAFID", current: 2, longest: 2, total: 28 },
+      { theme: "dark" }
+    );
+    expect(svg).not.toContain("data-heat");
+    expect(svg).toContain("day streak");
+  });
 });

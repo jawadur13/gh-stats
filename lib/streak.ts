@@ -14,6 +14,8 @@ export interface StreakResult {
 export interface StreakData extends StreakResult {
   login: string;
   displayName: string;
+  /** Full calendar (ascending). Optional so old callers keep working. */
+  days?: StreakDay[];
 }
 
 /** Pure streak math over ascending calendar days. Zero-days break runs. */
@@ -93,5 +95,6 @@ export async function fetchStreak(
     login: data.user.login,
     displayName: data.user.name ?? data.user.login,
     ...computeStreaks(days),
+    days,
   };
 }

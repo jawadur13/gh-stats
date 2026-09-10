@@ -12,6 +12,8 @@ describe("renderStatsCard", () => {
         prs: 10,
         issues: 0,
         contribs: 5,
+        followers: 13,
+        repos: 52,
         rank: "B-",
       },
       { theme: "dark" }
@@ -33,6 +35,8 @@ describe("renderStatsCard", () => {
         prs: 3,
         issues: 4,
         contribs: 5,
+        followers: 13,
+        repos: 52,
         rank: "C",
       },
       { theme: "dark", hideBorder: true }
@@ -51,13 +55,15 @@ describe("renderStatsCard", () => {
         prs: 10,
         issues: 0,
         contribs: 5,
+        followers: 13,
+        repos: 52,
         rank: "B-",
       },
       { theme: "dark", hide: ["prs", "issues"] }
     );
-    expect(svg).not.toContain("Total PRs");
-    expect(svg).not.toContain("Total Issues");
-    expect(svg).toContain("Total Stars");
+    expect(svg).not.toContain(">PRs<");
+    expect(svg).not.toContain(">Issues<");
+    expect(svg).toContain(">Stars<");
   });
 
   test("escapes XML in names", () => {
@@ -70,6 +76,8 @@ describe("renderStatsCard", () => {
         prs: 3,
         issues: 4,
         contribs: 5,
+        followers: 13,
+        repos: 52,
         rank: "C",
       },
       { theme: "dark" }
@@ -98,6 +106,18 @@ describe("renderTopLangsCard", () => {
     const svg = renderTopLangsCard([], { theme: "dark" });
     expect(svg).toContain("No language data");
   });
+
+  test("draws a donut with one segment per language", () => {
+    const svg = renderTopLangsCard(
+      [
+        { name: "TypeScript", color: "#3178c6", size: 4651 },
+        { name: "HTML", color: "#e34c26", size: 2042 },
+      ],
+      { theme: "dark" }
+    );
+    expect(svg).toContain('data-donut="2"');
+    expect(svg).toContain("TypeScript");
+  });
 });
 
 describe("renderError", () => {
@@ -119,14 +139,16 @@ describe("rank progress ring", () => {
         prs: 10,
         issues: 0,
         contribs: 46,
+        followers: 13,
+        repos: 52,
         score: 2354,
         rank: "A+",
       },
       { theme: "dark" }
     );
-    // r=26 -> C=163.36, progress 854/1000 -> offset 163.36*0.146=23.85
-    expect(svg).toContain('stroke-dasharray="163.36"');
-    expect(svg).toContain('stroke-dashoffset="23.85"');
+    // r=24 -> C=150.80, progress 854/1000 -> offset 150.80*0.146=22.02
+    expect(svg).toContain('stroke-dasharray="150.80"');
+    expect(svg).toContain('stroke-dashoffset="22.02"');
   });
 
   test("top tier draws a full ring", () => {
@@ -139,11 +161,57 @@ describe("rank progress ring", () => {
         prs: 100,
         issues: 50,
         contribs: 100,
+        followers: 13,
+        repos: 52,
         score: 7000,
         rank: "SS",
       },
       { theme: "dark" }
     );
     expect(svg).toContain('stroke-dashoffset="0.00"');
+  });
+
+  test("shows followers and repo counts with icons", () => {
+    const svg = renderStatsCard(
+      {
+        login: "jawadur13",
+        displayName: "MD JAWADUR RAFID",
+        stars: 18,
+        commits: 1704,
+        prs: 10,
+        issues: 0,
+        contribs: 46,
+        followers: 13,
+        repos: 52,
+        score: 2354,
+        rank: "A+",
+      },
+      { theme: "dark" }
+    );
+    expect(svg).toContain("Followers");
+    expect(svg).toContain(">13<");
+    expect(svg).toContain("Repos");
+    expect(svg).toContain(">52<");
+  });
+
+  test("shows visible percent to next rank and avatar", () => {
+    const svg = renderStatsCard(
+      {
+        login: "jawadur13",
+        displayName: "MD JAWADUR RAFID",
+        stars: 18,
+        commits: 1704,
+        prs: 10,
+        issues: 0,
+        contribs: 46,
+        followers: 13,
+        repos: 52,
+        score: 2354,
+        rank: "A+",
+      },
+      { theme: "dark" }
+    );
+    expect(svg).toContain("85% to S");
+    expect(svg).toContain("github.com/jawadur13.png");
   });
 });

@@ -6,6 +6,8 @@ export interface StatsData {
   prs: number;
   issues: number;
   contribs: number;
+  followers: number;
+  repos: number;
   score?: number;
   rank: string;
 }
@@ -18,7 +20,7 @@ export interface LangStat {
 
 export type ThemeName = "dark" | "light";
 
-export type StatKey = "stars" | "commits" | "prs" | "issues" | "contribs";
+export type StatKey = "stars" | "commits" | "prs" | "issues" | "contribs" | "followers" | "repos";
 
 export interface CardOptions {
   theme?: ThemeName;

@@ -86,4 +86,9 @@ describe("rankProgress", () => {
     expect(r.nextMin).toBeNull();
     expect(r.progress).toBe(1);
   });
+
+  test("names the next rank", () => {
+    expect(rankProgress(2354).nextRank).toBe("S");
+    expect(rankProgress(7000).nextRank).toBeNull();
+  });
 });
