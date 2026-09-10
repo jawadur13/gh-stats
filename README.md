@@ -1,23 +1,33 @@
 # gh-stats — own GitHub stats cards
 
-Original minimal SVG service by jawadur13. Real GitHub data, no third-party links.
+Self-hosted SVG stats service by jawadur13. Real GitHub data, no third-party links.
+Live at **https://gh-stats-jawadur-rafid.vercel.app**.
 
-## Use (after deploy)
+## Use it (just paste a link)
 
 ```md
-![stats](https://YOUR-VERCEL-URL/api?username=jawadur13&theme=dark&count_private=true)
-![langs](https://YOUR-VERCEL-URL/api/top-langs?username=jawadur13&theme=dark)
+![stats](https://gh-stats-jawadur-rafid.vercel.app/api?username=jawadur13&theme=dark&hide_border=false&include_all_commits=false&count_private=true)
+![streak](https://gh-stats-jawadur-rafid.vercel.app/api/streak?user=jawadur13&theme=dark&hide_border=false)
+![langs](https://gh-stats-jawadur-rafid.vercel.app/api/top-langs?username=jawadur13&theme=dark&hide_border=false&include_all_commits=false&count_private=false&layout=compact)
 ```
 
-Params `api`:
-- `username` (required)
+Params `api` (stats card):
+- `username` (or `user`) — required
 - `theme=dark|light` (default dark)
 - `hide=stars,commits,prs,issues,contribs`
-- `count_private=true` — counts YOUR private commits. Requires `PAT_1` = classic PAT with `repo` scope deployed as env var. Others using your link get public-only (GitHub privacy — unavoidable).
+- `hide_border=true` — borderless card
+- `count_private=true` — counts MY private commits (needs `PAT_1` on server).
+  Others using this link get public-only stats (GitHub privacy — unavoidable).
 
-Params `api/top-langs`: `username`, `theme`, `langs_count=1..8`.
+Params `api/streak`: `username` (or `user`), `theme`, `hide_border`.
+Params `api/top-langs`: `username` (or `user`), `theme`, `hide_border`, `langs_count=1..8`.
 
-## Local dev (no push)
+## Others reusing my link
+
+`https://gh-stats-jawadur-rafid.vercel.app/api?username=THEIR-USER` works instantly (public stats).
+For their private stats they must fork/deploy their own copy with their own `PAT_1`.
+
+## Local dev
 
 ```powershell
 Copy-Item .env.example .env
@@ -25,18 +35,14 @@ Copy-Item .env.example .env
 npm install
 npm test
 npm run dev
-# http://localhost:3000/api?username=jawadur13
+# http://localhost:3000/api?username=jawadur13&count_private=true
+# http://localhost:3000/api/streak?user=jawadur13
 # http://localhost:3000/api/top-langs?username=jawadur13
 ```
 
-## Deploy (Vercel, when ready)
+## Deploy (Vercel)
 
-1. Push this folder as its own repo (you said not now — skip).
-2. Vercel -> New Project -> import repo.
-3. Env: `PAT_1` = your classic PAT (`repo` scope), `CACHE_SECONDS=3600`.
-4. Point profile README at your URL with `count_private=true`.
-
-## Others reusing your link
-
-`https://YOUR-URL/api?username=THEIR-USER` works instantly (public stats).
-For their private stats they must deploy their own copy with their own `PAT_1`.
+1. Push this folder as its own repo and import in Vercel.
+2. Env vars: `PAT_1` = classic PAT (`repo` scope), `CACHE_SECONDS=3600`.
+   (If Output Directory is set to `public`, `public/index.html` keeps the build green.)
+3. Point profile README at your URL with `count_private=true`.
