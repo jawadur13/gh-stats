@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>gh-stats — own GitHub stats cards</title>
+<style>
+  body { background: #151515; color: #9f9f9f; font-family: Segoe UI, Ubuntu, sans-serif; margin: 0; display: grid; place-items: center; min-height: 100vh; }
+  main { max-width: 560px; padding: 24px; }
+  h1 { color: #fff; font-size: 22px; }
+  code { background: #242424; color: #79ff97; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  a { color: #79ff97; }
+  li { margin: 8px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>gh-stats is running ✅</h1>
+  <p>Self-hosted GitHub stats cards. Paste a link, get a live SVG card:</p>
+  <ul>
+    <li><code>/api?username=jawadur13&amp;count_private=true</code> — stats card</li>
+    <li><code>/api/streak?user=jawadur13</code> — streak card</li>
+    <li><code>/api/top-langs?username=jawadur13</code> — top languages</li>
+  </ul>
+  <p>Others can reuse: <code>/api?username=THEIR-USER</code> (public stats).</p>
+</main>
+</body>
+</html>
