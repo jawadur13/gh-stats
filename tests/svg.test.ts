@@ -107,3 +107,43 @@ describe("renderError", () => {
     expect(svg.startsWith("<svg")).toBe(true);
   });
 });
+
+describe("rank progress ring", () => {
+  test("shows exact arc toward next rank", () => {
+    const svg = renderStatsCard(
+      {
+        login: "jawadur13",
+        displayName: "MD JAWADUR RAFID",
+        stars: 18,
+        commits: 1704,
+        prs: 10,
+        issues: 0,
+        contribs: 46,
+        score: 2354,
+        rank: "A+",
+      },
+      { theme: "dark" }
+    );
+    // r=26 -> C=163.36, progress 854/1000 -> offset 163.36*0.146=23.85
+    expect(svg).toContain('stroke-dasharray="163.36"');
+    expect(svg).toContain('stroke-dashoffset="23.85"');
+  });
+
+  test("top tier draws a full ring", () => {
+    const svg = renderStatsCard(
+      {
+        login: "jawadur13",
+        displayName: "MD JAWADUR RAFID",
+        stars: 100,
+        commits: 7000,
+        prs: 100,
+        issues: 50,
+        contribs: 100,
+        score: 7000,
+        rank: "SS",
+      },
+      { theme: "dark" }
+    );
+    expect(svg).toContain('stroke-dashoffset="0.00"');
+  });
+});

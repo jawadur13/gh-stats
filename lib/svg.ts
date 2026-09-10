@@ -1,5 +1,6 @@
 import type { CardOptions, LangStat, StatsData } from "./types.js";
 import type { StreakData } from "./streak.js";
+import { rankProgress } from "./github.js";
 
 export function escapeXml(s: string): string {
   return s
@@ -48,6 +49,10 @@ const ROWS: { key: "stars" | "commits" | "prs" | "issues" | "contribs"; label: s
 export function renderStatsCard(data: StatsData, opts: CardOptions = {}): string {
   const t = themeOf(opts);
   const stroke = borderOf(opts);
+  const rp = rankProgress(typeof data.score === "number" ? data.score : 0);
+  const ringC = 2 * Math.PI * 26;
+  const ringDash = ringC.toFixed(2);
+  const ringOff = (ringC * (1 - rp.progress)).toFixed(2);
   const hidden = new Set(opts.hide ?? []);
   const visible = ROWS.filter((r) => !hidden.has(r.key));
   const rowH = 25;
@@ -60,7 +65,7 @@ export function renderStatsCard(data: StatsData, opts: CardOptions = {}): string
     })
     .join("");
 
-  return `<svg width="450" height="${height}" viewBox="0 0 450 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(data.displayName)} GitHub stats"><rect x="0.5" y="0.5" rx="4.5" width="449" height="${height - 1}" fill="${t.bg}" stroke="${stroke}"/><rect x="0" y="0" width="6" height="${height}" fill="${t.accent}"/><g transform="translate(25, 35)"><text font-family="Segoe UI, Ubuntu, Sans-Serif" font-size="17" font-weight="600" fill="${t.title}">${escapeXml(data.displayName)}'s stats · ${escapeXml(data.login)}</text></g><g transform="translate(360, 60)"><circle cx="0" cy="0" r="26" fill="none" stroke="${t.accent}" stroke-opacity="0.25" stroke-width="6"/><text x="0" y="7" text-anchor="middle" font-family="Segoe UI, Ubuntu, Sans-Serif" font-size="20" font-weight="800" fill="${t.text}">${escapeXml(data.rank)}</text></g>${rows}</svg>`;
+  return `<svg width="450" height="${height}" viewBox="0 0 450 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeXml(data.displayName)} GitHub stats"><rect x="0.5" y="0.5" rx="4.5" width="449" height="${height - 1}" fill="${t.bg}" stroke="${stroke}"/><rect x="0" y="0" width="6" height="${height}" fill="${t.accent}"/><g transform="translate(25, 35)"><text font-family="Segoe UI, Ubuntu, Sans-Serif" font-size="17" font-weight="600" fill="${t.title}">${escapeXml(data.displayName)}'s stats · ${escapeXml(data.login)}</text></g><g transform="translate(360, 60)"><circle cx="0" cy="0" r="26" fill="none" stroke="${t.accent}" stroke-opacity="0.25" stroke-width="6"/><circle cx="0" cy="0" r="26" fill="none" stroke="${t.accent}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${ringDash}" stroke-dashoffset="${ringOff}" transform="rotate(-90)"><title>${rp.progress === 1 ? "Top rank " + rp.rank : Math.round(rp.progress * 100) + "% to next rank"}</title></circle><text x="0" y="7" text-anchor="middle" font-family="Segoe UI, Ubuntu, Sans-Serif" font-size="20" font-weight="800" fill="${t.text}">${escapeXml(data.rank)}</text></g>${rows}</svg>`;
 }
 
 export function renderTopLangsCard(langs: LangStat[], opts: CardOptions & { maxLangs?: number } = {}): string {

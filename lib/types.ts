@@ -6,6 +6,7 @@ export interface StatsData {
   prs: number;
   issues: number;
   contribs: number;
+  score?: number;
   rank: string;
 }
 

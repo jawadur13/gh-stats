@@ -62,24 +62,56 @@ export function resolveUsername(query: { username?: unknown; user?: unknown }): 
   return raw;
 }
 
-/** Original simple rank: weighted activity score -> letter. */
-export function computeRank(s: {
+export interface ScoreInput {
   stars: number;
   commits: number;
   prs: number;
   issues: number;
   contribs: number;
-}): string {
-  const score =
-    s.commits * 1 + s.stars * 5 + s.prs * 10 + s.issues * 5 + s.contribs * 10;
-  if (score >= 2500) return "S";
-  if (score >= 1500) return "A+";
-  if (score >= 1000) return "A";
-  if (score >= 700) return "B+";
-  if (score >= 500) return "B";
-  if (score >= 300) return "B-";
-  if (score >= 150) return "C+";
-  return "C";
+}
+
+/** Weighted activity score. Commits carry volume, stars/PRs/contribs carry weight. */
+export function scoreOf(s: ScoreInput): number {
+  return s.commits * 1 + s.stars * 5 + s.prs * 10 + s.issues * 5 + s.contribs * 10;
+}
+
+const TIERS: { min: number; rank: string }[] = [
+  { min: 0, rank: "C" },
+  { min: 150, rank: "C+" },
+  { min: 300, rank: "B-" },
+  { min: 500, rank: "B" },
+  { min: 700, rank: "B+" },
+  { min: 1000, rank: "A" },
+  { min: 1500, rank: "A+" },
+  { min: 2500, rank: "S" },
+  { min: 4000, rank: "S+" },
+  { min: 6500, rank: "SS" },
+];
+
+/** Original simple rank: weighted activity score -> letter. */
+export function computeRank(s: ScoreInput): string {
+  return rankProgress(scoreOf(s)).rank;
+}
+
+export interface RankProgress {
+  rank: string;
+  score: number;
+  currentMin: number;
+  nextMin: number | null;
+  /** 0..1 fraction toward the next tier; 1 when on the top tier. */
+  progress: number;
+}
+
+export function rankProgress(score: number): RankProgress {
+  let idx = 0;
+  for (let i = 0; i < TIERS.length; i++) {
+    if (score >= TIERS[i].min) idx = i;
+  }
+  const current = TIERS[idx];
+  const next = TIERS[idx + 1] ?? null;
+  const progress =
+    next === null ? 1 : Math.min(1, Math.max(0, (score - current.min) / (next.min - current.min)));
+  return { rank: current.rank, score, currentMin: current.min, nextMin: next?.min ?? null, progress };
 }
 
 export async function ghGraphQL<T>(token: string | undefined, query: string, variables: Record<string, unknown>): Promise<T> {
@@ -204,10 +236,12 @@ export async function fetchStats(
   const issues = cc.totalIssueContributions;
   const contribs = cc.totalRepositoriesWithContributedCommits;
   const base = { stars, commits, prs, issues, contribs };
+  const score = scoreOf(base);
   return {
     login: data.user.login,
     displayName: data.user.name ?? data.user.login,
     ...base,
+    score,
     rank: computeRank(base),
   };
 }
